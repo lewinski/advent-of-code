@@ -1,32 +1,22 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
+
+	"github.com/lewinski/advent-of-code/util"
 )
 
-func firstRune(str string) (r rune) {
-	for _, r = range str {
-		return
-	}
-	return
-}
-
 func main() {
-	f, _ := os.Open("input.txt")
-	scanner := bufio.NewScanner(f)
-
 	part1Valid, part2Valid := 0, 0
-	for scanner.Scan() {
-		fields := strings.Fields(scanner.Text())
+	for _, line := range util.Lines("input.txt") {
+		fields := strings.Fields(line)
 
 		policy := strings.Split(fields[0], "-")
 		p1, _ := strconv.Atoi(policy[0])
 		p2, _ := strconv.Atoi(policy[1])
-		want := firstRune(fields[1])
+		want := util.FirstRune(fields[1])
 		password := fields[2]
 
 		if validatePasswordPart1(p1, p2, want, password) {

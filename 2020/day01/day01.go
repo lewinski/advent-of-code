@@ -1,20 +1,17 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strconv"
+
+	"github.com/lewinski/advent-of-code/util"
 )
 
 func main() {
-	f, _ := os.Open("input.txt")
-	scanner := bufio.NewScanner(f)
-
 	vals := make(map[int]bool)
 
-	for scanner.Scan() {
-		val, _ := strconv.Atoi(scanner.Text())
+	for _, line := range util.Lines("input.txt") {
+		val, _ := strconv.Atoi(line)
 		if _, ok := vals[val]; ok {
 			panic("duplicate value")
 		}
