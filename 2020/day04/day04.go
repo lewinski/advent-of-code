@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -57,81 +58,119 @@ func parseBatchFile(lines []string) (passports []passport) {
 	return
 }
 
+type validatorFunc func(string) error
+
+func validators() map[string]validatorFunc {
+	return map[string]validatorFunc{
+		"byr": validBirthYear,
+		"iyr": validIssueYear,
+		"eyr": validExpirationYear,
+		"hgt": validHeight,
+		"hcl": validHairColor,
+		"ecl": validEyeColor,
+		"pid": validPassportID,
+	}
+}
+
 func completePassport(p passport) bool {
-	need := []string{"byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"}
-	for _, field := range need {
-		if _, ok := p[field]; !ok {
+	for k := range validators() {
+		if _, ok := p[k]; !ok {
 			return false
 		}
 	}
 	return true
 }
 
-func validPassport(p passport) (valid bool, errors []string) {
-	if !completePassport(p) {
-		valid = false
-		errors = append(errors, "incomplete")
-		return
-	}
-
-	if match, _ := regexp.MatchString(`^\d{4}$`, p["byr"]); match {
-		byr, _ := strconv.Atoi(p["byr"])
-		if byr < 1920 || byr > 2002 {
-			errors = append(errors, "byr range")
+func validPassport(p passport) (valid bool, errs []error) {
+	for k, f := range validators() {
+		if _, ok := p[k]; ok {
+			if err := f(p[k]); err != nil {
+				errs = append(errs, err)
+			}
+		} else {
+			errs = append(errs, fmt.Errorf("Missing %s value", k))
 		}
-	} else {
-		errors = append(errors, "byr format")
 	}
 
-	if match, _ := regexp.MatchString(`^\d{4}$`, p["iyr"]); match {
-		iyr, _ := strconv.Atoi(p["iyr"])
-		if iyr < 2010 || iyr > 2020 {
-			errors = append(errors, "iyr range")
-		}
-	} else {
-		errors = append(errors, "iyr format")
-	}
-
-	if match, _ := regexp.MatchString(`^\d{4}$`, p["eyr"]); match {
-		eyr, _ := strconv.Atoi(p["eyr"])
-		if eyr < 2020 || eyr > 2030 {
-			errors = append(errors, "eyr range")
-		}
-	} else {
-		errors = append(errors, "eyr range")
-	}
-
-	if match, _ := regexp.MatchString(`^\d{3}cm$`, p["hgt"]); match {
-		hgt, _ := strconv.Atoi(p["hgt"][0:3])
-		if hgt < 150 || hgt > 193 {
-			errors = append(errors, "hgt cm range")
-		}
-	} else if match, _ := regexp.MatchString(`^\d{2}in`, p["hgt"]); match {
-		hgt, _ := strconv.Atoi(p["hgt"][0:2])
-		if hgt < 59 || hgt > 76 {
-			errors = append(errors, "hgt in range")
-		}
-	} else {
-		errors = append(errors, "hgt format")
-	}
-
-	if match, _ := regexp.MatchString(`^#[0-9a-f]{6}$`, p["hcl"]); !match {
-		errors = append(errors, "hcl format")
-	}
-
-	if match, _ := regexp.MatchString(`^(amb|blu|brn|gry|grn|hzl|oth)$`, p["ecl"]); !match {
-		errors = append(errors, "hcl format")
-	}
-
-	if match, _ := regexp.MatchString(`^\d{9}$`, p["pid"]); !match {
-		errors = append(errors, "pid format")
-	}
-
-	if len(errors) == 0 {
+	if len(errs) == 0 {
 		valid = true
 	} else {
 		valid = false
 	}
 
 	return
+}
+
+func validBirthYear(x string) error {
+	if match, _ := regexp.MatchString(`^\d{4}$`, x); match {
+		byr, _ := strconv.Atoi(x)
+		if byr < 1920 || byr > 2002 {
+			return errors.New("Invalid byr value out of range")
+		}
+	} else {
+		return errors.New("Invalid byr format")
+	}
+	return nil
+}
+
+func validIssueYear(x string) error {
+	if match, _ := regexp.MatchString(`^\d{4}$`, x); match {
+		iyr, _ := strconv.Atoi(x)
+		if iyr < 2010 || iyr > 2020 {
+			return errors.New("Invalid iyr value out of range")
+		}
+	} else {
+		return errors.New("Invalid iyr format")
+	}
+	return nil
+}
+
+func validExpirationYear(x string) error {
+	if match, _ := regexp.MatchString(`^\d{4}$`, x); match {
+		eyr, _ := strconv.Atoi(x)
+		if eyr < 2020 || eyr > 2030 {
+			return errors.New("Invalid eyr value out of range")
+		}
+	} else {
+		return errors.New("Invalid eyr format")
+	}
+	return nil
+}
+
+func validHeight(x string) error {
+	if match, _ := regexp.MatchString(`^\d{3}cm$`, x); match {
+		hgt, _ := strconv.Atoi(x[0:3])
+		if hgt < 150 || hgt > 193 {
+			return errors.New("Invalid hgt centimeter value out of range")
+		}
+	} else if match, _ := regexp.MatchString(`^\d{2}in`, x); match {
+		hgt, _ := strconv.Atoi(x[0:2])
+		if hgt < 59 || hgt > 76 {
+			return errors.New("Invalid hgt inch value out of range")
+		}
+	} else {
+		return errors.New("Invalid hgt format")
+	}
+	return nil
+}
+
+func validHairColor(x string) error {
+	if match, _ := regexp.MatchString(`^#[0-9a-f]{6}$`, x); !match {
+		return errors.New("Invalid hcl format")
+	}
+	return nil
+}
+
+func validEyeColor(x string) error {
+	if match, _ := regexp.MatchString(`^(amb|blu|brn|gry|grn|hzl|oth)$`, x); !match {
+		return errors.New("Invalid ecl format")
+	}
+	return nil
+}
+
+func validPassportID(x string) error {
+	if match, _ := regexp.MatchString(`^\d{9}$`, x); !match {
+		return errors.New("Invalid pid format")
+	}
+	return nil
 }
