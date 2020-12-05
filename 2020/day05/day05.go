@@ -38,27 +38,20 @@ func main() {
 	}
 }
 
+func bsp(min, max int, rule string, lower, upper rune) int {
+	for _, x := range rule {
+		if x == lower {
+			max -= (max - min + 1) / 2
+		} else if x == upper {
+			min += (max - min + 1) / 2
+		}
+	}
+	return min
+}
+
 func decodeSeat(pass string) (row, col int) {
-	rowMin, rowMax := 0, 127
-	for _, x := range pass[:7] {
-		if x == 'F' {
-			rowMax -= (rowMax + 1 - rowMin) / 2
-		} else if x == 'B' {
-			rowMin += (rowMax + 1 - rowMin) / 2
-		}
-	}
-	row = rowMin
-
-	colMin, colMax := 0, 7
-	for _, x := range pass[7:] {
-		if x == 'L' {
-			colMax -= (colMax + 1 - colMin) / 2
-		} else if x == 'R' {
-			colMin += (colMax + 1 - colMin) / 2
-		}
-	}
-	col = colMin
-
+	row = bsp(0, 127, pass[:7], 'F', 'B')
+	col = bsp(0, 7, pass[7:], 'L', 'R')
 	return
 }
 
