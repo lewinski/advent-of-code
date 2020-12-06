@@ -9,8 +9,8 @@ import (
 func TestExamplePart1(t *testing.T) {
 	tests := []bool{true, false, true, false}
 
-	input := util.Lines("input-example.txt")
-	passports := parseBatchFile(input)
+	records := util.Records("input-example.txt")
+	passports := parseBatchFile(records)
 	if len(passports) != 4 {
 		t.Errorf("expected 4 passports, got %d", len(passports))
 	}

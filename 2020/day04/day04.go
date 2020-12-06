@@ -13,8 +13,8 @@ import (
 type passport map[string]string
 
 func main() {
-	input := util.Lines("input.txt")
-	passports := parseBatchFile(input)
+	records := util.Records("input.txt")
+	passports := parseBatchFile(records)
 
 	complete := 0
 	for _, passport := range passports {
@@ -34,25 +34,16 @@ func main() {
 
 }
 
-func parseBatchFile(lines []string) (passports []passport) {
-	lines = append(lines, "")
-	passports = make([]passport, 0)
+func parseBatchFile(records []string) (passports []passport) {
+	passports = make([]passport, 0, len(records))
 
-	cur := passport{}
-	for _, line := range lines {
-		if len(line) == 0 {
-			if len(cur) > 0 {
-				passports = append(passports, cur)
-			}
-			cur = passport{}
-			continue
+	for _, record := range records {
+		p := passport{}
+		for _, field := range strings.Fields(record) {
+			pair := strings.SplitN(field, ":", 2)
+			p[pair[0]] = pair[1]
 		}
-
-		f := strings.Fields(line)
-		for _, field := range f {
-			kv := strings.SplitN(field, ":", 2)
-			cur[kv[0]] = kv[1]
-		}
+		passports = append(passports, p)
 	}
 
 	return
