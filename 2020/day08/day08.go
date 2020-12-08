@@ -78,7 +78,14 @@ func runProgram(program program) (accum int, booted bool) {
 func fixProgram(program program) (accum int, booted bool) {
 	for i := len(program) - 1; i > 0; i-- {
 		tmp := append([]instruction{}, program...)
+		switch tmp[i].opcode {
+		case "acc":
+			continue
+		case "nop":
+			tmp[i].opcode = "jmp"
+		case "jmp":
 		tmp[i].opcode = "nop"
+		}
 		part2, booted := runProgram(tmp)
 		if booted {
 			return part2, booted
