@@ -8,24 +8,24 @@ import (
 
 func TestExamplePart1(t *testing.T) {
 	program := parseProgram(util.Lines("input-example.txt"))
-	got, booted := runProgram(program)
+	got, looped := runProgram(program)
 	want := 5
 	if got != want {
 		t.Errorf("wanted %d, got %d", want, got)
 	}
-	if booted {
-		t.Error("booted successfully, but should have looped")
+	if !looped {
+		t.Error("wanted program looped, got booted instead")
 	}
 }
 
 func TestExamplePart2(t *testing.T) {
 	program := parseProgram(util.Lines("input-example.txt"))
-	got, booted := fixProgram(program)
+	got, looped := fixProgram(program)
 	want := 8
 	if got != want {
 		t.Errorf("wanted %d, got %d", want, got)
 	}
-	if !booted {
-		t.Error("should have booted successfully, but didn't")
+	if looped {
+		t.Error("wanted program booted, got looped instead")
 	}
 }

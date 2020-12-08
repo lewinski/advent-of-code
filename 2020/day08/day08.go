@@ -42,53 +42,51 @@ type machine struct {
 	accum int
 }
 
-func runProgram(program program) (accum int, booted bool) {
+func runProgram(program program) (int, bool) {
 	m := machine{}
 	visited := map[int]bool{}
+	looped := false
 
 	for {
-		_, ok := visited[m.pc]
-		if ok {
-			return m.accum, false
+		_, found := visited[m.pc]
+		if found {
+			looped = true
+			return m.accum, looped
 		}
 		visited[m.pc] = true
 
 		if m.pc >= len(program) {
-			break
+			return m.accum, looped
 		}
 
 		i := program[m.pc]
 		switch i.opcode {
 		case "nop":
 			m.pc++
-			break
 		case "acc":
 			m.accum += i.argument
 			m.pc++
-			break
 		case "jmp":
 			m.pc += i.argument
-			break
 		}
 	}
-
-	return m.accum, true
 }
 
-func fixProgram(program program) (accum int, booted bool) {
+func fixProgram(program program) (int, bool) {
 	for i := len(program) - 1; i > 0; i-- {
-		tmp := append([]instruction{}, program...)
-		switch tmp[i].opcode {
+		opcode := program[i].opcode
+		switch opcode {
 		case "acc":
 			continue
 		case "nop":
-			tmp[i].opcode = "jmp"
+			program[i].opcode = "jmp"
 		case "jmp":
-		tmp[i].opcode = "nop"
+			program[i].opcode = "nop"
 		}
-		part2, booted := runProgram(tmp)
-		if booted {
-			return part2, booted
+		accum, looped := runProgram(program)
+		program[i].opcode = opcode
+		if !looped {
+			return accum, looped
 		}
 	}
 	panic("couldn't fix it")
