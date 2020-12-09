@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"os"
+	"strconv"
 )
 
 // Lines returns the contents of a file as a slice of lines
@@ -21,6 +22,24 @@ func Lines(filename string) []string {
 	}
 
 	return lines
+}
+
+// IntLines returns the contents of a file as a slice of ints
+func IntLines(filename string) []int {
+	f, err := os.Open(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	ints := make([]int, 0, 20)
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		x, _ := strconv.Atoi(scanner.Text())
+		ints = append(ints, x)
+	}
+
+	return ints
 }
 
 // ScanRecords is a bufio.SplitFunc to split on two newlines

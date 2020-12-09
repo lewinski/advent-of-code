@@ -3,27 +3,17 @@ package main
 import (
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/lewinski/advent-of-code/util"
 )
 
 func main() {
-	input := util.Lines("input.txt")
-	values := ints(input)
+	values := util.IntLines("input.txt")
 	preamble := 25
 
 	invalidValue := findInvalidValue(values, preamble)
 	fmt.Println("part1:", invalidValue)
 	fmt.Println("part2:", findEncryptionWeakness(values, invalidValue))
-}
-
-func ints(input []string) (values []int) {
-	for _, line := range input {
-		x, _ := strconv.Atoi(line)
-		values = append(values, x)
-	}
-	return
 }
 
 func findInvalidValue(values []int, preamble int) int {

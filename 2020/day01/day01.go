@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/lewinski/advent-of-code/util"
 )
@@ -10,8 +9,7 @@ import (
 func main() {
 	vals := make(map[int]bool)
 
-	for _, line := range util.Lines("input.txt") {
-		val, _ := strconv.Atoi(line)
+	for _, val := range util.IntLines("input.txt") {
 		if _, ok := vals[val]; ok {
 			panic("duplicate value")
 		}
