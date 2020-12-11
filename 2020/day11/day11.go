@@ -44,6 +44,10 @@ func (f ferry) at(x, y int) int {
 	return f.layout[x][y]
 }
 
+func (f *ferry) set(x, y, val int) {
+	f.layout[x][y] = val
+}
+
 func parseInput(lines []string) ferry {
 	var ferry ferry
 	ferry.layout = make([][]int, len(lines))
@@ -52,13 +56,13 @@ func parseInput(lines []string) ferry {
 		for j, x := range line {
 			switch x {
 			case '.':
-				ferry.layout[i][j] = floor
+				ferry.set(i, j, floor)
 			case 'L':
-				ferry.layout[i][j] = empty
+				ferry.set(i, j, empty)
 			case '#':
-				ferry.layout[i][j] = occupied
+				ferry.set(i, j, occupied)
 			default:
-				ferry.layout[i][j] = unknown
+				ferry.set(i, j, unknown)
 			}
 		}
 	}
@@ -93,11 +97,11 @@ func (f ferry) iter1() ferry {
 		for j := range f.layout[i] {
 			o := f.occupiedAround(i, j)
 			if f.at(i, j) == empty && o == 0 {
-				n.layout[i][j] = occupied
+				n.set(i, j, occupied)
 			} else if f.at(i, j) == occupied && o >= 4 {
-				n.layout[i][j] = empty
+				n.set(i, j, empty)
 			} else {
-				n.layout[i][j] = f.at(i, j)
+				n.set(i, j, f.at(i, j))
 			}
 		}
 	}
@@ -112,11 +116,11 @@ func (f ferry) iter2() ferry {
 		for j := range f.layout[i] {
 			o := f.occupiedDirectional(i, j)
 			if f.at(i, j) == empty && o == 0 {
-				n.layout[i][j] = occupied
+				n.set(i, j, occupied)
 			} else if f.at(i, j) == occupied && o >= 5 {
-				n.layout[i][j] = empty
+				n.set(i, j, empty)
 			} else {
-				n.layout[i][j] = f.at(i, j)
+				n.set(i, j, f.at(i, j))
 			}
 		}
 	}
