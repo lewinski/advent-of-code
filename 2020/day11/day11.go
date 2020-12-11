@@ -38,10 +38,11 @@ const (
 
 type ferry struct {
 	layout [][]int
+	h, w   int
 }
 
 func newFerry(h, w int) ferry {
-	f := ferry{}
+	f := ferry{h: h, w: w}
 	f.layout = make([][]int, h)
 	for i := 0; i < h; i++ {
 		f.layout[i] = make([]int, w)
@@ -78,9 +79,9 @@ func parseInput(lines []string) ferry {
 
 func (f ferry) String() string {
 	var sb strings.Builder
-	for _, line := range f.layout {
-		for _, x := range line {
-			switch x {
+	for i := 0; i < f.h; i++ {
+		for j := 0; j < f.w; j++ {
+			switch f.at(i, j) {
 			case floor:
 				sb.WriteString(".")
 			case empty:
@@ -97,9 +98,9 @@ func (f ferry) String() string {
 }
 
 func (f ferry) iter1() ferry {
-	n := newFerry(len(f.layout), len(f.layout[0]))
-	for i := range f.layout {
-		for j := range f.layout[i] {
+	n := newFerry(f.h, f.w)
+	for i := 0; i < f.h; i++ {
+		for j := 0; j < f.w; j++ {
 			o := f.occupiedAround(i, j)
 			if f.at(i, j) == empty && o == 0 {
 				n.set(i, j, occupied)
@@ -114,9 +115,9 @@ func (f ferry) iter1() ferry {
 }
 
 func (f ferry) iter2() ferry {
-	n := newFerry(len(f.layout), len(f.layout[0]))
-	for i := range f.layout {
-		for j := range f.layout[i] {
+	n := newFerry(f.h, f.w)
+	for i := 0; i < f.h; i++ {
+		for j := 0; j < f.w; j++ {
 			o := f.occupiedDirectional(i, j)
 			if f.at(i, j) == empty && o == 0 {
 				n.set(i, j, occupied)
@@ -131,8 +132,8 @@ func (f ferry) iter2() ferry {
 }
 
 func (f ferry) occupiedSeats() (count int) {
-	for i := range f.layout {
-		for j := range f.layout[i] {
+	for i := 0; i < f.h; i++ {
+		for j := 0; j < f.w; j++ {
 			if f.at(i, j) == occupied {
 				count++
 			}
@@ -148,8 +149,8 @@ func (f ferry) occupiedAround(i, j int) int {
 			if x == 0 && y == 0 {
 				continue
 			}
-			if i+x >= 0 && i+x < len(f.layout) {
-				if j+y >= 0 && j+y < len(f.layout[i+x]) {
+			if i+x >= 0 && i+x < f.h {
+				if j+y >= 0 && j+y < f.w {
 					if f.at(i+x, j+y) == occupied {
 						count++
 					}
@@ -170,10 +171,10 @@ func (f ferry) occupiedDirectional(i, j int) int {
 			for mult := 1; ; mult++ {
 				ix := i + (mult * x)
 				jy := j + (mult * y)
-				if ix < 0 || ix >= len(f.layout) {
+				if ix < 0 || ix >= f.h {
 					break
 				}
-				if jy < 0 || jy >= len(f.layout[ix]) {
+				if jy < 0 || jy >= f.w {
 					break
 				}
 				if f.at(ix, jy) == floor {
