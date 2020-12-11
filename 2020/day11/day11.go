@@ -37,16 +37,13 @@ const (
 )
 
 type ferry struct {
-	layout [][]int
-	h, w   int
+	cells []int
+	h, w  int
 }
 
 func newFerry(h, w int) ferry {
 	f := ferry{h: h, w: w}
-	f.layout = make([][]int, h)
-	for i := 0; i < h; i++ {
-		f.layout[i] = make([]int, w)
-	}
+	f.cells = make([]int, h*w)
 	return f
 }
 
@@ -55,11 +52,11 @@ func (f ferry) contains(x, y int) bool {
 }
 
 func (f ferry) at(x, y int) int {
-	return f.layout[x][y]
+	return f.cells[x*f.w+y]
 }
 
 func (f *ferry) set(x, y, val int) {
-	f.layout[x][y] = val
+	f.cells[x*f.w+y] = val
 }
 
 func parseInput(lines []string) ferry {
