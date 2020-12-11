@@ -50,6 +50,10 @@ func newFerry(h, w int) ferry {
 	return f
 }
 
+func (f ferry) contains(x, y int) bool {
+	return x >= 0 && x < f.h && y >= 0 && y < f.w
+}
+
 func (f ferry) at(x, y int) int {
 	return f.layout[x][y]
 }
@@ -160,39 +164,33 @@ func (f ferry) occupiedAround(i, j int) int {
 	for _, offset := range directions() {
 		ix := i + offset[0]
 		jy := j + offset[1]
-			if ix < 0 || ix >= f.h {
-				continue
-			}
-			if jy < 0 || jy >= f.w {
-				continue
-			}
-			if f.at(ix, jy) == occupied {
-				count++
-			}
+		if !f.contains(ix, jy) {
+			continue
 		}
+		if f.at(ix, jy) == occupied {
+			count++
+		}
+	}
 	return count
 }
 
 func (f ferry) occupiedDirectional(i, j int) int {
 	count := 0
 	for _, offset := range directions() {
-			for mult := 1; ; mult++ {
+		for mult := 1; ; mult++ {
 			ix := i + (mult * offset[0])
 			jy := j + (mult * offset[1])
-				if ix < 0 || ix >= f.h {
-					break
-				}
-				if jy < 0 || jy >= f.w {
-					break
-				}
-				if f.at(ix, jy) == floor {
-					continue
-				}
-				if f.at(ix, jy) == occupied {
-					count++
-				}
+			if !f.contains(ix, jy) {
 				break
 			}
+			if f.at(ix, jy) == floor {
+				continue
+			}
+			if f.at(ix, jy) == occupied {
+				count++
+			}
+			break
 		}
+	}
 	return count
 }
