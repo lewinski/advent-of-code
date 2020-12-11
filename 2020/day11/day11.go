@@ -40,6 +40,15 @@ type ferry struct {
 	layout [][]int
 }
 
+func newFerry(h, w int) ferry {
+	f := ferry{}
+	f.layout = make([][]int, h)
+	for i := 0; i < h; i++ {
+		f.layout[i] = make([]int, w)
+	}
+	return f
+}
+
 func (f ferry) at(x, y int) int {
 	return f.layout[x][y]
 }
@@ -49,10 +58,8 @@ func (f *ferry) set(x, y, val int) {
 }
 
 func parseInput(lines []string) ferry {
-	var ferry ferry
-	ferry.layout = make([][]int, len(lines))
+	ferry := newFerry(len(lines), len(lines[0]))
 	for i, line := range lines {
-		ferry.layout[i] = make([]int, len(line))
 		for j, x := range line {
 			switch x {
 			case '.':
@@ -90,10 +97,8 @@ func (f ferry) String() string {
 }
 
 func (f ferry) iter1() ferry {
-	var n ferry
-	n.layout = make([][]int, len(f.layout))
+	n := newFerry(len(f.layout), len(f.layout[0]))
 	for i := range f.layout {
-		n.layout[i] = make([]int, len(f.layout[i]))
 		for j := range f.layout[i] {
 			o := f.occupiedAround(i, j)
 			if f.at(i, j) == empty && o == 0 {
@@ -109,10 +114,8 @@ func (f ferry) iter1() ferry {
 }
 
 func (f ferry) iter2() ferry {
-	var n ferry
-	n.layout = make([][]int, len(f.layout))
+	n := newFerry(len(f.layout), len(f.layout[0]))
 	for i := range f.layout {
-		n.layout[i] = make([]int, len(f.layout[i]))
 		for j := range f.layout[i] {
 			o := f.occupiedDirectional(i, j)
 			if f.at(i, j) == empty && o == 0 {
