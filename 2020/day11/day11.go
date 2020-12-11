@@ -30,9 +30,10 @@ func main() {
 }
 
 const (
-	floor    int = -1
-	empty    int = 0
-	occupied int = 1
+	floor    int = 0
+	empty    int = 1
+	occupied int = 2
+	unknown  int = 3
 )
 
 type ferry struct {
@@ -47,13 +48,13 @@ func parseInput(lines []string) ferry {
 		for j, x := range line {
 			switch x {
 			case '.':
-				ferry.layout[i][j] = -1
+				ferry.layout[i][j] = floor
 			case 'L':
-				ferry.layout[i][j] = 0
+				ferry.layout[i][j] = empty
 			case '#':
-				ferry.layout[i][j] = 1
+				ferry.layout[i][j] = occupied
 			default:
-				ferry.layout[i][j] = 3
+				ferry.layout[i][j] = unknown
 			}
 		}
 	}
