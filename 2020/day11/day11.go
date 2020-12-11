@@ -142,15 +142,24 @@ func (f ferry) occupiedSeats() (count int) {
 	return
 }
 
+func directions() [8][2]int {
+	return [8][2]int{
+		{-1, -1},
+		{-1, 0},
+		{-1, 1},
+		{0, -1},
+		{0, 1},
+		{1, -1},
+		{1, 0},
+		{1, 1},
+	}
+}
+
 func (f ferry) occupiedAround(i, j int) int {
 	count := 0
-	for x := -1; x <= 1; x++ {
-		for y := -1; y <= 1; y++ {
-			if x == 0 && y == 0 {
-				continue
-			}
-			ix := i + x
-			jy := j + y
+	for _, offset := range directions() {
+		ix := i + offset[0]
+		jy := j + offset[1]
 			if ix < 0 || ix >= f.h {
 				continue
 			}
@@ -161,20 +170,15 @@ func (f ferry) occupiedAround(i, j int) int {
 				count++
 			}
 		}
-	}
 	return count
 }
 
 func (f ferry) occupiedDirectional(i, j int) int {
 	count := 0
-	for x := -1; x <= 1; x++ {
-		for y := -1; y <= 1; y++ {
-			if x == 0 && y == 0 {
-				continue
-			}
+	for _, offset := range directions() {
 			for mult := 1; ; mult++ {
-				ix := i + (mult * x)
-				jy := j + (mult * y)
+			ix := i + (mult * offset[0])
+			jy := j + (mult * offset[1])
 				if ix < 0 || ix >= f.h {
 					break
 				}
@@ -190,6 +194,5 @@ func (f ferry) occupiedDirectional(i, j int) int {
 				break
 			}
 		}
-	}
 	return count
 }
