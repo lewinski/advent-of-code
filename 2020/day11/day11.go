@@ -40,6 +40,10 @@ type ferry struct {
 	layout [][]int
 }
 
+func (f ferry) at(x, y int) int {
+	return f.layout[x][y]
+}
+
 func parseInput(lines []string) ferry {
 	var ferry ferry
 	ferry.layout = make([][]int, len(lines))
@@ -88,12 +92,12 @@ func (f ferry) iter1() ferry {
 		n.layout[i] = make([]int, len(f.layout[i]))
 		for j := range f.layout[i] {
 			o := f.occupiedAround(i, j)
-			if f.layout[i][j] == empty && o == 0 {
+			if f.at(i, j) == empty && o == 0 {
 				n.layout[i][j] = occupied
-			} else if f.layout[i][j] == occupied && o >= 4 {
+			} else if f.at(i, j) == occupied && o >= 4 {
 				n.layout[i][j] = empty
 			} else {
-				n.layout[i][j] = f.layout[i][j]
+				n.layout[i][j] = f.at(i, j)
 			}
 		}
 	}
@@ -107,12 +111,12 @@ func (f ferry) iter2() ferry {
 		n.layout[i] = make([]int, len(f.layout[i]))
 		for j := range f.layout[i] {
 			o := f.occupiedDirectional(i, j)
-			if f.layout[i][j] == empty && o == 0 {
+			if f.at(i, j) == empty && o == 0 {
 				n.layout[i][j] = occupied
-			} else if f.layout[i][j] == occupied && o >= 5 {
+			} else if f.at(i, j) == occupied && o >= 5 {
 				n.layout[i][j] = empty
 			} else {
-				n.layout[i][j] = f.layout[i][j]
+				n.layout[i][j] = f.at(i, j)
 			}
 		}
 	}
@@ -122,7 +126,7 @@ func (f ferry) iter2() ferry {
 func (f ferry) occupiedSeats() (count int) {
 	for i := range f.layout {
 		for j := range f.layout[i] {
-			if f.layout[i][j] == occupied {
+			if f.at(i, j) == occupied {
 				count++
 			}
 		}
@@ -139,7 +143,7 @@ func (f ferry) occupiedAround(i, j int) int {
 			}
 			if i+x >= 0 && i+x < len(f.layout) {
 				if j+y >= 0 && j+y < len(f.layout[i+x]) {
-					if f.layout[i+x][j+y] == occupied {
+					if f.at(i+x, j+y) == occupied {
 						count++
 					}
 				}
@@ -165,10 +169,10 @@ func (f ferry) occupiedDirectional(i, j int) int {
 				if jy < 0 || jy >= len(f.layout[ix]) {
 					break
 				}
-				if f.layout[ix][jy] == floor {
+				if f.at(ix, jy) == floor {
 					continue
 				}
-				if f.layout[ix][jy] == occupied {
+				if f.at(ix, jy) == occupied {
 					count++
 				}
 				break
