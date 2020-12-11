@@ -149,12 +149,16 @@ func (f ferry) occupiedAround(i, j int) int {
 			if x == 0 && y == 0 {
 				continue
 			}
-			if i+x >= 0 && i+x < f.h {
-				if j+y >= 0 && j+y < f.w {
-					if f.at(i+x, j+y) == occupied {
-						count++
-					}
-				}
+			ix := i + x
+			jy := j + y
+			if ix < 0 || ix >= f.h {
+				continue
+			}
+			if jy < 0 || jy >= f.w {
+				continue
+			}
+			if f.at(ix, jy) == occupied {
+				count++
 			}
 		}
 	}
