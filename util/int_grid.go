@@ -37,3 +37,15 @@ func (g IntGrid) Get(i, j int) int {
 func (g IntGrid) Set(i, j, x int) {
 	g.cells[i*g.width+j] = x
 }
+
+// IntGridEachFunc is the signature for the function passed to Each.
+type IntGridEachFunc func(i, j, x int)
+
+// Each calls the specified function for each cell in the grid.
+func (g IntGrid) Each(eachFunc IntGridEachFunc) {
+	for i := 0; i < g.height; i++ {
+		for j := 0; j < g.width; j++ {
+			eachFunc(i, j, g.Get(i, j))
+		}
+	}
+}

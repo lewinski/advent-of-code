@@ -67,66 +67,60 @@ func parseInput(lines []string) ferry {
 
 func (f ferry) String() string {
 	var sb strings.Builder
-	for i := 0; i < f.Height(); i++ {
-		for j := 0; j < f.Width(); j++ {
-			switch f.Get(i, j) {
-			case floor:
-				sb.WriteString(".")
-			case empty:
-				sb.WriteString("L")
-			case occupied:
-				sb.WriteString("#")
-			default:
-				sb.WriteString("?")
-			}
+	f.Each(func(i, j, x int) {
+		switch x {
+		case floor:
+			sb.WriteString(".")
+		case empty:
+			sb.WriteString("L")
+		case occupied:
+			sb.WriteString("#")
+		default:
+			sb.WriteString("?")
 		}
-		sb.WriteString("\n")
-	}
+		if j == f.Width()-1 {
+			sb.WriteString("\n")
+		}
+	})
 	return sb.String()
 }
 
 func (f ferry) iter1() ferry {
 	n := newFerry(f.Height(), f.Width())
-	for i := 0; i < f.Height(); i++ {
-		for j := 0; j < f.Width(); j++ {
-			o := f.occupiedAround(i, j)
-			if f.Get(i, j) == empty && o == 0 {
-				n.Set(i, j, occupied)
-			} else if f.Get(i, j) == occupied && o >= 4 {
-				n.Set(i, j, empty)
-			} else {
-				n.Set(i, j, f.Get(i, j))
-			}
+	f.Each(func(i, j, x int) {
+		o := f.occupiedAround(i, j)
+		if x == empty && o == 0 {
+			n.Set(i, j, occupied)
+		} else if x == occupied && o >= 4 {
+			n.Set(i, j, empty)
+		} else {
+			n.Set(i, j, x)
 		}
-	}
+	})
 	return n
 }
 
 func (f ferry) iter2() ferry {
 	n := newFerry(f.Height(), f.Width())
-	for i := 0; i < f.Height(); i++ {
-		for j := 0; j < f.Width(); j++ {
-			o := f.occupiedDirectional(i, j)
-			if f.Get(i, j) == empty && o == 0 {
-				n.Set(i, j, occupied)
-			} else if f.Get(i, j) == occupied && o >= 5 {
-				n.Set(i, j, empty)
-			} else {
-				n.Set(i, j, f.Get(i, j))
-			}
+	f.Each(func(i, j, x int) {
+		o := f.occupiedDirectional(i, j)
+		if x == empty && o == 0 {
+			n.Set(i, j, occupied)
+		} else if x == occupied && o >= 5 {
+			n.Set(i, j, empty)
+		} else {
+			n.Set(i, j, x)
 		}
-	}
+	})
 	return n
 }
 
 func (f ferry) occupiedSeats() (count int) {
-	for i := 0; i < f.Height(); i++ {
-		for j := 0; j < f.Width(); j++ {
-			if f.Get(i, j) == occupied {
-				count++
-			}
+	f.Each(func(i, j, x int) {
+		if x == occupied {
+			count++
 		}
-	}
+	})
 	return
 }
 
