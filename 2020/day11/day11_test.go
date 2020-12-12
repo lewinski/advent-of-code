@@ -8,16 +8,16 @@ import (
 
 func TestExamplePart1(t *testing.T) {
 	input := util.Lines("input-example.txt")
-	f := parseInput(input)
+	ferry := parseInput(input)
 	for {
-		g := f.iter1()
-		if f.String() == g.String() {
+		gerry := ferry.iter1()
+		if ferry.String() == gerry.String() {
 			break
 		}
-		f = g
+		ferry = gerry
 	}
 
-	count := f.occupiedSeats()
+	count := ferry.occupiedSeats()
 	if count != 37 {
 		t.Errorf("wanted 37 occupied seats, got %d", count)
 	}
@@ -25,17 +25,16 @@ func TestExamplePart1(t *testing.T) {
 
 func TestExamplePart2(t *testing.T) {
 	input := util.Lines("input-example.txt")
-	f := parseInput(input)
-
+	ferry := parseInput(input)
 	for {
-		g := f.iter2()
-		if f.String() == g.String() {
+		gerry := ferry.iter2()
+		if ferry.String() == gerry.String() {
 			break
 		}
-		f = g
+		ferry = gerry
 	}
 
-	count := f.occupiedSeats()
+	count := ferry.occupiedSeats()
 	if count != 26 {
 		t.Errorf("wanted 26 occupied seats, got %d", count)
 	}
