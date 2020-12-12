@@ -37,26 +37,13 @@ const (
 )
 
 type ferry struct {
-	cells []int
-	h, w  int
+	util.IntGrid
 }
 
 func newFerry(h, w int) ferry {
-	f := ferry{h: h, w: w}
-	f.cells = make([]int, h*w)
-	return f
-}
-
-func (f ferry) contains(x, y int) bool {
-	return x >= 0 && x < f.h && y >= 0 && y < f.w
-}
-
-func (f ferry) at(x, y int) int {
-	return f.cells[x*f.w+y]
-}
-
-func (f *ferry) set(x, y, val int) {
-	f.cells[x*f.w+y] = val
+	ferry := ferry{}
+	ferry.IntGrid = util.NewIntGrid(h, w)
+	return ferry
 }
 
 func parseInput(lines []string) ferry {
@@ -65,13 +52,13 @@ func parseInput(lines []string) ferry {
 		for j, x := range line {
 			switch x {
 			case '.':
-				ferry.set(i, j, floor)
+				ferry.Set(i, j, floor)
 			case 'L':
-				ferry.set(i, j, empty)
+				ferry.Set(i, j, empty)
 			case '#':
-				ferry.set(i, j, occupied)
+				ferry.Set(i, j, occupied)
 			default:
-				ferry.set(i, j, unknown)
+				ferry.Set(i, j, unknown)
 			}
 		}
 	}
@@ -80,9 +67,9 @@ func parseInput(lines []string) ferry {
 
 func (f ferry) String() string {
 	var sb strings.Builder
-	for i := 0; i < f.h; i++ {
-		for j := 0; j < f.w; j++ {
-			switch f.at(i, j) {
+	for i := 0; i < f.Height(); i++ {
+		for j := 0; j < f.Width(); j++ {
+			switch f.Get(i, j) {
 			case floor:
 				sb.WriteString(".")
 			case empty:
@@ -99,16 +86,16 @@ func (f ferry) String() string {
 }
 
 func (f ferry) iter1() ferry {
-	n := newFerry(f.h, f.w)
-	for i := 0; i < f.h; i++ {
-		for j := 0; j < f.w; j++ {
+	n := newFerry(f.Height(), f.Width())
+	for i := 0; i < f.Height(); i++ {
+		for j := 0; j < f.Width(); j++ {
 			o := f.occupiedAround(i, j)
-			if f.at(i, j) == empty && o == 0 {
-				n.set(i, j, occupied)
-			} else if f.at(i, j) == occupied && o >= 4 {
-				n.set(i, j, empty)
+			if f.Get(i, j) == empty && o == 0 {
+				n.Set(i, j, occupied)
+			} else if f.Get(i, j) == occupied && o >= 4 {
+				n.Set(i, j, empty)
 			} else {
-				n.set(i, j, f.at(i, j))
+				n.Set(i, j, f.Get(i, j))
 			}
 		}
 	}
@@ -116,16 +103,16 @@ func (f ferry) iter1() ferry {
 }
 
 func (f ferry) iter2() ferry {
-	n := newFerry(f.h, f.w)
-	for i := 0; i < f.h; i++ {
-		for j := 0; j < f.w; j++ {
+	n := newFerry(f.Height(), f.Width())
+	for i := 0; i < f.Height(); i++ {
+		for j := 0; j < f.Width(); j++ {
 			o := f.occupiedDirectional(i, j)
-			if f.at(i, j) == empty && o == 0 {
-				n.set(i, j, occupied)
-			} else if f.at(i, j) == occupied && o >= 5 {
-				n.set(i, j, empty)
+			if f.Get(i, j) == empty && o == 0 {
+				n.Set(i, j, occupied)
+			} else if f.Get(i, j) == occupied && o >= 5 {
+				n.Set(i, j, empty)
 			} else {
-				n.set(i, j, f.at(i, j))
+				n.Set(i, j, f.Get(i, j))
 			}
 		}
 	}
@@ -133,9 +120,9 @@ func (f ferry) iter2() ferry {
 }
 
 func (f ferry) occupiedSeats() (count int) {
-	for i := 0; i < f.h; i++ {
-		for j := 0; j < f.w; j++ {
-			if f.at(i, j) == occupied {
+	for i := 0; i < f.Height(); i++ {
+		for j := 0; j < f.Width(); j++ {
+			if f.Get(i, j) == occupied {
 				count++
 			}
 		}
@@ -161,10 +148,10 @@ func (f ferry) occupiedAround(i, j int) int {
 	for _, offset := range directions() {
 		ix := i + offset[0]
 		jy := j + offset[1]
-		if !f.contains(ix, jy) {
+		if !f.Contains(ix, jy) {
 			continue
 		}
-		if f.at(ix, jy) == occupied {
+		if f.Get(ix, jy) == occupied {
 			count++
 		}
 	}
@@ -177,13 +164,13 @@ func (f ferry) occupiedDirectional(i, j int) int {
 		for mult := 1; ; mult++ {
 			ix := i + (mult * offset[0])
 			jy := j + (mult * offset[1])
-			if !f.contains(ix, jy) {
+			if !f.Contains(ix, jy) {
 				break
 			}
-			if f.at(ix, jy) == floor {
+			if f.Get(ix, jy) == floor {
 				continue
 			}
-			if f.at(ix, jy) == occupied {
+			if f.Get(ix, jy) == occupied {
 				count++
 			}
 			break
