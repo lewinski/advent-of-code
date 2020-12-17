@@ -12,286 +12,92 @@ func main() {
 
 	cube := parseInput1(input, steps)
 	for i := 0; i < steps; i++ {
-		cube = cube.step()
+		cube = step1(cube)
 	}
-	count := 0
-	for _, x := range cube.cells {
-		count += x
-	}
-	fmt.Println("part1:", count)
+
+	cubeCount := 0
+	cube.Each(func(p util.Point3, x int) {
+		if x > 0 {
+			cubeCount++
+		}
+	})
+	fmt.Println("part1:", cubeCount)
 
 	hypercube := parseInput2(input, steps)
 	for i := 0; i < steps; i++ {
-		hypercube = hypercube.step()
+		hypercube = step2(hypercube)
 	}
-	count = 0
-	for _, x := range hypercube.cells {
-		count += x
-	}
-	fmt.Println("part2:", count)
+
+	hypercubeCount := 0
+	hypercube.Each(func(p util.Point4, x int) {
+		if x > 0 {
+			hypercubeCount++
+		}
+	})
+	fmt.Println("part2:", hypercubeCount)
 
 }
 
-func parseInput1(lines []string, steps int) cube {
-	size := util.IMax(len(lines), len(lines[0]))
-	half := size / 2
-	cube := newCube(size + steps)
-
+func parseInput1(lines []string, steps int) util.IntGrid3 {
+	g := util.IntGrid3{}
 	for x, line := range lines {
 		for y, c := range line {
 			val := 0
 			if c == '#' {
 				val = 1
 			}
-			cube.set(x-half, y-half, 0, val)
+			g[util.Point3{x, y, 0}] = val
 		}
 	}
-
-	return cube
+	return g
 }
 
-func parseInput2(lines []string, steps int) hypercube {
-	size := util.IMax(len(lines), len(lines[0]))
-	half := size / 2
-	cube := newHypercube(size + steps)
+func step1(g util.IntGrid3) util.IntGrid3 {
+	accum := util.IntGrid3{}
+	g.Each(func(p util.Point3, x int) {
+		if x > 0 {
+			for _, a := range p.Around() {
+				accum[a]++
+			}
+		}
+	})
+	result := util.IntGrid3{}
+	accum.Each(func(p util.Point3, x int) {
+		if (x == 3) || (g[p] > 0 && x == 2) {
+			result[p] = 1
+		}
+	})
+	return result
+}
 
+func parseInput2(lines []string, steps int) util.IntGrid4 {
+	g := util.IntGrid4{}
 	for x, line := range lines {
 		for y, c := range line {
 			val := 0
 			if c == '#' {
 				val = 1
 			}
-			cube.set(0, x-half, y-half, 0, val)
+			g[util.Point4{x, y, 0}] = val
 		}
 	}
-
-	return cube
+	return g
 }
 
-type point3 struct {
-	x, y, z int
-}
-
-type cube struct {
-	max   int
-	size  int
-	cells []int
-}
-
-func newCube(max int) cube {
-	c := cube{max: max, size: max*2 + 1}
-	c.cells = make([]int, c.size*c.size*c.size)
-	return c
-}
-
-func (c cube) at(x, y, z int) int {
-	if util.IAbs(x) > c.max || util.IAbs(y) > c.max || util.IAbs(z) > c.max {
-		return 0
-	}
-	offset := ((x + c.max) * c.size * c.size) + ((y + c.max) * c.size) + (z + c.max)
-	return c.cells[offset]
-}
-
-func (c *cube) set(x, y, z, val int) {
-	offset := ((x + c.max) * c.size * c.size) + ((y + c.max) * c.size) + (z + c.max)
-	c.cells[offset] = val
-}
-
-func (c cube) step() cube {
-	d := newCube(c.max)
-	for x := -c.max; x < c.max; x++ {
-		for y := -c.max; y < c.max; y++ {
-			for z := -c.max; z < c.max; z++ {
-				neighbors := 0
-				for _, p := range around3(x, y, z) {
-					if c.at(p.x, p.y, p.z) == 1 {
-						neighbors++
-					}
-				}
-				if c.at(x, y, z) == 1 {
-					if neighbors == 2 || neighbors == 3 {
-						d.set(x, y, z, 1)
-					}
-				} else if neighbors == 3 {
-					d.set(x, y, z, 1)
-				}
+func step2(g util.IntGrid4) util.IntGrid4 {
+	accum := util.IntGrid4{}
+	g.Each(func(p util.Point4, x int) {
+		if x > 0 {
+			for _, a := range p.Around() {
+				accum[a]++
 			}
 		}
-	}
-	return d
-}
-
-func around3(x, y, z int) []point3 {
-	return []point3{
-		{x - 1, y - 1, z - 1},
-		{x - 1, y - 1, z},
-		{x - 1, y - 1, z + 1},
-		{x - 1, y, z - 1},
-		{x - 1, y, z},
-		{x - 1, y, z + 1},
-		{x - 1, y + 1, z - 1},
-		{x - 1, y + 1, z},
-		{x - 1, y + 1, z + 1},
-		{x, y - 1, z - 1},
-		{x, y - 1, z},
-		{x, y - 1, z + 1},
-		{x, y, z - 1},
-		// {x, y, z},
-		{x, y, z + 1},
-		{x, y + 1, z - 1},
-		{x, y + 1, z},
-		{x, y + 1, z + 1},
-		{x + 1, y - 1, z - 1},
-		{x + 1, y - 1, z},
-		{x + 1, y - 1, z + 1},
-		{x + 1, y, z - 1},
-		{x + 1, y, z},
-		{x + 1, y, z + 1},
-		{x + 1, y + 1, z - 1},
-		{x + 1, y + 1, z},
-		{x + 1, y + 1, z + 1},
-	}
-}
-
-type point4 struct {
-	w, x, y, z int
-}
-
-type hypercube struct {
-	max   int
-	size  int
-	cells []int
-}
-
-func newHypercube(max int) hypercube {
-	c := hypercube{max: max, size: max*2 + 1}
-	c.cells = make([]int, c.size*c.size*c.size*c.size)
-	return c
-}
-
-func (c hypercube) at(w, x, y, z int) int {
-	if util.IAbs(w) > c.max || util.IAbs(x) > c.max || util.IAbs(y) > c.max || util.IAbs(z) > c.max {
-		return 0
-	}
-	offset := ((w + c.max) * c.size * c.size * c.size) + ((x + c.max) * c.size * c.size) + ((y + c.max) * c.size) + (z + c.max)
-	return c.cells[offset]
-}
-
-func (c *hypercube) set(w, x, y, z, val int) {
-	offset := ((w + c.max) * c.size * c.size * c.size) + ((x + c.max) * c.size * c.size) + ((y + c.max) * c.size) + (z + c.max)
-	c.cells[offset] = val
-}
-
-func (c hypercube) step() hypercube {
-	d := newHypercube(c.max)
-	for w := -c.max; w < c.max; w++ {
-		for x := -c.max; x < c.max; x++ {
-			for y := -c.max; y < c.max; y++ {
-				for z := -c.max; z < c.max; z++ {
-					neighbors := 0
-					for _, p := range around4(w, x, y, z) {
-						if c.at(p.w, p.x, p.y, p.z) == 1 {
-							neighbors++
-						}
-					}
-					if c.at(w, x, y, z) == 1 {
-						if neighbors == 2 || neighbors == 3 {
-							d.set(w, x, y, z, 1)
-						}
-					} else if neighbors == 3 {
-						d.set(w, x, y, z, 1)
-					}
-				}
-			}
+	})
+	result := util.IntGrid4{}
+	accum.Each(func(p util.Point4, x int) {
+		if (x == 3) || (g[p] > 0 && x == 2) {
+			result[p] = 1
 		}
-	}
-	return d
-}
-
-func around4(w, x, y, z int) []point4 {
-	return []point4{
-		{w - 1, x - 1, y - 1, z - 1},
-		{w - 1, x - 1, y - 1, z},
-		{w - 1, x - 1, y - 1, z + 1},
-		{w - 1, x - 1, y, z - 1},
-		{w - 1, x - 1, y, z},
-		{w - 1, x - 1, y, z + 1},
-		{w - 1, x - 1, y + 1, z - 1},
-		{w - 1, x - 1, y + 1, z},
-		{w - 1, x - 1, y + 1, z + 1},
-		{w - 1, x, y - 1, z - 1},
-		{w - 1, x, y - 1, z},
-		{w - 1, x, y - 1, z + 1},
-		{w - 1, x, y, z - 1},
-		{w - 1, x, y, z},
-		{w - 1, x, y, z + 1},
-		{w - 1, x, y + 1, z - 1},
-		{w - 1, x, y + 1, z},
-		{w - 1, x, y + 1, z + 1},
-		{w - 1, x + 1, y - 1, z - 1},
-		{w - 1, x + 1, y - 1, z},
-		{w - 1, x + 1, y - 1, z + 1},
-		{w - 1, x + 1, y, z - 1},
-		{w - 1, x + 1, y, z},
-		{w - 1, x + 1, y, z + 1},
-		{w - 1, x + 1, y + 1, z - 1},
-		{w - 1, x + 1, y + 1, z},
-		{w - 1, x + 1, y + 1, z + 1},
-
-		{w, x - 1, y - 1, z - 1},
-		{w, x - 1, y - 1, z},
-		{w, x - 1, y - 1, z + 1},
-		{w, x - 1, y, z - 1},
-		{w, x - 1, y, z},
-		{w, x - 1, y, z + 1},
-		{w, x - 1, y + 1, z - 1},
-		{w, x - 1, y + 1, z},
-		{w, x - 1, y + 1, z + 1},
-		{w, x, y - 1, z - 1},
-		{w, x, y - 1, z},
-		{w, x, y - 1, z + 1},
-		{w, x, y, z - 1},
-		// {w, x, y, z},
-		{w, x, y, z + 1},
-		{w, x, y + 1, z - 1},
-		{w, x, y + 1, z},
-		{w, x, y + 1, z + 1},
-		{w, x + 1, y - 1, z - 1},
-		{w, x + 1, y - 1, z},
-		{w, x + 1, y - 1, z + 1},
-		{w, x + 1, y, z - 1},
-		{w, x + 1, y, z},
-		{w, x + 1, y, z + 1},
-		{w, x + 1, y + 1, z - 1},
-		{w, x + 1, y + 1, z},
-		{w, x + 1, y + 1, z + 1},
-
-		{w + 1, x - 1, y - 1, z - 1},
-		{w + 1, x - 1, y - 1, z},
-		{w + 1, x - 1, y - 1, z + 1},
-		{w + 1, x - 1, y, z - 1},
-		{w + 1, x - 1, y, z},
-		{w + 1, x - 1, y, z + 1},
-		{w + 1, x - 1, y + 1, z - 1},
-		{w + 1, x - 1, y + 1, z},
-		{w + 1, x - 1, y + 1, z + 1},
-		{w + 1, x, y - 1, z - 1},
-		{w + 1, x, y - 1, z},
-		{w + 1, x, y - 1, z + 1},
-		{w + 1, x, y, z - 1},
-		{w + 1, x, y, z},
-		{w + 1, x, y, z + 1},
-		{w + 1, x, y + 1, z - 1},
-		{w + 1, x, y + 1, z},
-		{w + 1, x, y + 1, z + 1},
-		{w + 1, x + 1, y - 1, z - 1},
-		{w + 1, x + 1, y - 1, z},
-		{w + 1, x + 1, y - 1, z + 1},
-		{w + 1, x + 1, y, z - 1},
-		{w + 1, x + 1, y, z},
-		{w + 1, x + 1, y, z + 1},
-		{w + 1, x + 1, y + 1, z - 1},
-		{w + 1, x + 1, y + 1, z},
-		{w + 1, x + 1, y + 1, z + 1},
-	}
+	})
+	return result
 }

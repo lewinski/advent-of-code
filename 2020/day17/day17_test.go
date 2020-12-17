@@ -9,36 +9,41 @@ import (
 func TestExamplePart1(t *testing.T) {
 	input := util.Lines("input-example.txt")
 	steps := 6
+
 	cube := parseInput1(input, steps)
 	for i := 0; i < steps; i++ {
-		cube = cube.step()
+		cube = step1(cube)
 	}
 
-	count := 0
-	for _, x := range cube.cells {
-		count += x
-	}
+	cubeCount := 0
+	cube.Each(func(p util.Point3, x int) {
+		if x > 0 {
+			cubeCount++
+		}
+	})
 
-	if count != 112 {
-		t.Errorf("expected 112 cells, got %d", count)
+	if cubeCount != 112 {
+		t.Errorf("expected 112 cells, got %d", cubeCount)
 	}
 }
 
 func TestExamplePart2(t *testing.T) {
 	input := util.Lines("input-example.txt")
 	steps := 6
-	cube := parseInput2(input, steps)
 
+	hypercube := parseInput2(input, steps)
 	for i := 0; i < steps; i++ {
-		cube = cube.step()
+		hypercube = step2(hypercube)
 	}
 
-	count := 0
-	for _, x := range cube.cells {
-		count += x
-	}
+	hypercubeCount := 0
+	hypercube.Each(func(p util.Point4, x int) {
+		if x > 0 {
+			hypercubeCount++
+		}
+	})
 
-	if count != 848 {
-		t.Errorf("expected 848 cells, got %d", count)
+	if hypercubeCount != 848 {
+		t.Errorf("expected 848 cells, got %d", hypercubeCount)
 	}
 }
