@@ -10,16 +10,9 @@ import (
 func main() {
 	input := util.Lines("input.txt")
 	p1pos := p1nav(input)
-	fmt.Println("part1:", abs(p1pos.x)+abs(p1pos.y))
+	fmt.Println("part1:", util.IAbs(p1pos.x)+util.IAbs(p1pos.y))
 	p2pos := p2nav(input)
-	fmt.Println("part1:", abs(p2pos.x)+abs(p2pos.y))
-}
-
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
+	fmt.Println("part1:", util.IAbs(p2pos.x)+util.IAbs(p2pos.y))
 }
 
 type point struct {
