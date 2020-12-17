@@ -37,13 +37,16 @@ const (
 )
 
 type ferry struct {
-	util.IntGrid
+	util.IntGrid2
+	h, w int
 }
 
 func newFerry(h, w int) ferry {
-	ferry := ferry{}
-	ferry.IntGrid = util.NewIntGrid(h, w)
-	return ferry
+	return ferry{
+		IntGrid2: util.IntGrid2{},
+		h:        h,
+		w:        w,
+	}
 }
 
 func parseInput(lines []string) ferry {
@@ -52,13 +55,13 @@ func parseInput(lines []string) ferry {
 		for j, x := range line {
 			switch x {
 			case '.':
-				ferry.Set(i, j, floor)
+				ferry.SetCoords(i, j, floor)
 			case 'L':
-				ferry.Set(i, j, empty)
+				ferry.SetCoords(i, j, empty)
 			case '#':
-				ferry.Set(i, j, occupied)
+				ferry.SetCoords(i, j, occupied)
 			default:
-				ferry.Set(i, j, unknown)
+				ferry.SetCoords(i, j, unknown)
 			}
 		}
 	}
@@ -67,56 +70,56 @@ func parseInput(lines []string) ferry {
 
 func (f ferry) String() string {
 	var sb strings.Builder
-	f.Each(func(i, j, x int) {
-		switch x {
-		case floor:
-			sb.WriteString(".")
-		case empty:
-			sb.WriteString("L")
-		case occupied:
-			sb.WriteString("#")
-		default:
-			sb.WriteString("?")
+	for i := 0; i < f.h; i++ {
+		for j := 0; j < f.w; j++ {
+			switch f.GetCoords(i, j) {
+			case floor:
+				sb.WriteString(".")
+			case empty:
+				sb.WriteString("L")
+			case occupied:
+				sb.WriteString("#")
+			default:
+				sb.WriteString("?")
+			}
 		}
-		if j == f.Width()-1 {
-			sb.WriteString("\n")
-		}
-	})
+		sb.WriteString("\n")
+	}
 	return sb.String()
 }
 
 func (f ferry) iter1() ferry {
-	n := newFerry(f.Height(), f.Width())
-	f.Each(func(i, j, x int) {
-		o := f.occupiedAround(i, j)
+	n := newFerry(f.h, f.w)
+	f.Each(func(p util.Point2, x int) {
+		o := f.occupiedAround(p)
 		if x == empty && o == 0 {
-			n.Set(i, j, occupied)
+			n.Set(p, occupied)
 		} else if x == occupied && o >= 4 {
-			n.Set(i, j, empty)
+			n.Set(p, empty)
 		} else {
-			n.Set(i, j, x)
+			n.Set(p, x)
 		}
 	})
 	return n
 }
 
 func (f ferry) iter2() ferry {
-	n := newFerry(f.Height(), f.Width())
-	f.Each(func(i, j, x int) {
-		o := f.occupiedDirectional(i, j)
+	n := newFerry(f.h, f.w)
+	f.Each(func(p util.Point2, x int) {
+		o := f.occupiedDirectional(p)
 		if x == empty && o == 0 {
-			n.Set(i, j, occupied)
+			n.Set(p, occupied)
 		} else if x == occupied && o >= 5 {
-			n.Set(i, j, empty)
+			n.Set(p, empty)
 		} else {
-			n.Set(i, j, x)
+			n.Set(p, x)
 		}
 	})
 	return n
 }
 
 func (f ferry) occupiedSeats() (count int) {
-	f.Each(func(i, j, x int) {
+	f.Each(func(p util.Point2, x int) {
 		if x == occupied {
 			count++
 		}
@@ -124,51 +127,31 @@ func (f ferry) occupiedSeats() (count int) {
 	return
 }
 
-func directions() [8][2]int {
-	return [8][2]int{
-		{-1, -1},
-		{-1, 0},
-		{-1, 1},
-		{0, -1},
-		{0, 1},
-		{1, -1},
-		{1, 0},
-		{1, 1},
-	}
-}
-
-func (f ferry) occupiedAround(i, j int) int {
-	count := 0
-	for _, offset := range directions() {
-		ix := i + offset[0]
-		jy := j + offset[1]
-		if !f.Contains(ix, jy) {
-			continue
-		}
-		if f.Get(ix, jy) == occupied {
+func (f ferry) occupiedAround(p util.Point2) (count int) {
+	for _, a := range p.Around() {
+		if f.Get(a) == occupied {
 			count++
 		}
 	}
-	return count
+	return
 }
 
-func (f ferry) occupiedDirectional(i, j int) int {
-	count := 0
-	for _, offset := range directions() {
+func (f ferry) occupiedDirectional(p util.Point2) (count int) {
+	directions := util.Origin2().Around()
+	for _, offset := range directions {
 		for mult := 1; ; mult++ {
-			ix := i + (mult * offset[0])
-			jy := j + (mult * offset[1])
-			if !f.Contains(ix, jy) {
+			a := p.Offset(offset.Scale(mult))
+			if !f.Contains(a) {
 				break
 			}
-			if f.Get(ix, jy) == floor {
+			if f.Get(a) == floor {
 				continue
 			}
-			if f.Get(ix, jy) == occupied {
+			if f.Get(a) == occupied {
 				count++
 			}
 			break
 		}
 	}
-	return count
+	return
 }
