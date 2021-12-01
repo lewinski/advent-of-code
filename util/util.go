@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"os"
 	"strconv"
+	"unicode/utf8"
 )
 
 // Lines returns the contents of a file as a slice of lines
@@ -77,6 +78,15 @@ func Records(filename string) []string {
 // FirstRune returns the first rune in the string
 func FirstRune(str string) (r rune) {
 	for _, r = range str {
+		return
+	}
+	return
+}
+
+// LastRune returns the last rune in the string
+func LastRune(str string) (r rune) {
+	if len(str) > 0 {
+		r, _ = utf8.DecodeLastRuneInString(str)
 		return
 	}
 	return
