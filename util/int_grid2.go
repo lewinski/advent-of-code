@@ -8,6 +8,16 @@ func Origin2() Point2 {
 	return Point2{0, 0}
 }
 
+// Touching returns the 4 points directly adjacent to the point.
+func (p Point2) Touching() []Point2 {
+	return []Point2{
+		{p[0] - 1, p[1]},
+		{p[0], p[1] - 1},
+		{p[0], p[1] + 1},
+		{p[0] + 1, p[1]},
+	}
+}
+
 // Around returns the 8 points adjacent to the point.
 func (p Point2) Around() []Point2 {
 	return []Point2{
