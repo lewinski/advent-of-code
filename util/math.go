@@ -35,3 +35,11 @@ func IMax(x, y int) int {
 	}
 	return y
 }
+
+// IMin returns the smaller of the two integer arguments
+func IMin(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
