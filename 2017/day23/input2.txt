@@ -1,0 +1,65 @@
+# 0: set b 81
+# 1: set c b
+# 2: jnz a 2
+# 3: jnz 1 5
+# 4: mul b 100
+# 5: sub b -100000
+# 6: set c b
+# 7: sub c -17000
+if part1 {
+    b = 81
+    c = 81
+} else {
+    b = 108100
+    c = 125100
+}
+
+# 8: set f 1
+f = 1
+# 9: set d 2
+d = 2
+# 10: set e 2
+e = 2
+
+# 11: set g d
+# 12: mul g e
+# 13: sub g b
+# 14: jnz g 2
+# 15: set f 0
+if d * e == b {
+    f = 0
+}
+
+# 16: sub e -1
+# 17: set g e
+# 18: sub g b
+# 19: jnz g -8
+if b == e + 1 {
+    goto 11
+}
+
+# 20: sub d -1
+# 21: set g d
+# 22: sub g b
+# 23: jnz g -13
+if b == d + 1 {
+    goto 10
+}
+
+# 24: jnz f 2
+# 25: sub h -1
+if f == 0 {
+    h += 1 # when b is not prime
+}
+
+# 26: set g b
+# 27: sub g c
+# 28: jnz g 2
+# 29: jnz 1 3
+# 30: sub b -17
+# 31: jnz 1 -23
+if b == c {
+    exit
+}
+b += 17 # test only every 17th number
+goto 8
