@@ -6,15 +6,13 @@ import (
 )
 
 func main() {
-	// 473 players; last marble is worth 70904 points
 	players := 473
 
-	// part 1
-	// lastMarble := 70904
+	fmt.Println(game(players, 70904))
+	fmt.Println(game(players, 7090400))
+}
 
-	// part 2
-	lastMarble := 7090400
-
+func game(players, lastMarble int) int {
 	score := make([]int, players)
 	curPlayer := 0
 
@@ -50,5 +48,5 @@ func main() {
 			maxScore = s
 		}
 	}
-	fmt.Println(maxScore)
+	return maxScore
 }
