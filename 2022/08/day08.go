@@ -16,59 +16,26 @@ func main() {
 		}
 	}
 
-	h := len(lines)
-	w := len(lines[0])
-	fmt.Println("part1:", part1(g, h, w))
+	fmt.Println("part1:", part1(g))
 	fmt.Println("part2:", part2(g))
 }
 
-func part1(g util.IntGrid2, h, w int) int {
+func part1(g util.IntGrid2) int {
+	dirs := util.Origin2().Touching()
+
 	visible := 0
 	g.Each(func(p util.Point2, v int) {
-		if p[0] == 0 || p[0] == w-1 || p[1] == 0 || p[1] == h-1 {
-			// everything on edge is visible
-			visible++
-		} else {
-			ok := true
-			for x := 0; x < p[0]; x++ {
-				if g.GetCoords(x, p[1]) >= v {
-					ok = false
+		for _, dir := range dirs {
+			// move in direction until we hit a tree that is too tall or fall off the edge
+			cur := p.Offset(dir)
+			for g.Contains(cur) {
+				if g.Get(cur) >= v {
+					break
 				}
+				cur = cur.Offset(dir)
 			}
-			if ok {
-				visible++
-				return
-			}
-
-			ok = true
-			for x := w - 1; x > p[0]; x-- {
-				if g.GetCoords(x, p[1]) >= v {
-					ok = false
-				}
-			}
-			if ok {
-				visible++
-				return
-			}
-
-			ok = true
-			for y := 0; y < p[1]; y++ {
-				if g.GetCoords(p[0], y) >= v {
-					ok = false
-				}
-			}
-			if ok {
-				visible++
-				return
-			}
-
-			ok = true
-			for y := h - 1; y > p[1]; y-- {
-				if g.GetCoords(p[0], y) >= v {
-					ok = false
-				}
-			}
-			if ok {
+			// if we left the edge, then the tree is visible from outside
+			if !g.Contains(cur) {
 				visible++
 				return
 			}
@@ -78,34 +45,31 @@ func part1(g util.IntGrid2, h, w int) int {
 }
 
 func part2(g util.IntGrid2) int {
+	dirs := util.Origin2().Touching()
+
 	best := 0
-
 	g.Each(func(p util.Point2, x int) {
-		dirs := []util.Point2{
-			{1, 0},
-			{0, 1},
-			{-1, 0},
-			{0, -1},
-		}
-
 		score := 1
 		for _, dir := range dirs {
-			c := p.Offset(dir)
-			see := 0
-			for g.Contains(c) {
-				see++
-				if g.Get(c) >= x {
+			trees := 0
+
+			// move in direction, counting trees that are shorter than starting position
+			cur := p.Offset(dir)
+			for g.Contains(cur) {
+				trees++
+				if g.Get(cur) >= x {
 					break
 				}
-				c = c.Offset(dir)
+				cur = cur.Offset(dir)
 			}
-			score *= see
+
+			// accumulate score
+			score *= trees
 		}
 
 		if score > best {
 			best = score
 		}
 	})
-
 	return best
 }
