@@ -42,16 +42,10 @@ func moveRope(lines []string, n int) int {
 				if util.IAbs(dx) <= 1 && util.IAbs(dy) <= 1 {
 					// already touching
 					continue
-				} else if util.IAbs(dx) == 2 && dy == 0 {
-					// close gap directly left or right
-					knots[j] = knots[j].OffsetCoords(dx/util.IAbs(dx), 0)
-				} else if dx == 0 && util.IAbs(dy) == 2 {
-					// close gap directly above or below
-					knots[j] = knots[j].OffsetCoords(0, dy/util.IAbs(dy))
-				} else {
-					// move diagonally
-					knots[j] = knots[j].OffsetCoords(dx/util.IAbs(dx), dy/util.IAbs(dy))
 				}
+
+				// move closer
+				knots[j] = knots[j].OffsetCoords(util.ISign(dx), util.ISign(dy))
 			}
 
 			seen.Set(knots[n-1], 1)

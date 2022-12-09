@@ -20,6 +20,16 @@ func IntFields(s string) []int {
 	return rv
 }
 
+// ISign returns the sign of the integer argument
+func ISign(x int) int {
+	if x == 0 {
+		return 0
+	} else if x < 0 {
+		return -1
+	}
+	return 1
+}
+
 // IAbs returns the absolute value of the integer argument
 func IAbs(x int) int {
 	if x < 0 {
