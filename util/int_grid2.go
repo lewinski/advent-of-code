@@ -52,6 +52,11 @@ func (p Point2) OffsetCoords(x, y int) Point2 {
 	return Point2{p[0] + x, p[1] + y}
 }
 
+// Distance returns the manhattan distance between the point and the other point.
+func (p Point2) Distance(o Point2) int {
+	return IAbs(p[0]-o[0]) + IAbs(p[1]-o[1])
+}
+
 // IntGrid2 is a two-dimensional grid of integers.
 type IntGrid2 map[Point2]int
 
