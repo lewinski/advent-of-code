@@ -43,6 +43,20 @@ func (p Point3) Around() []Point3 {
 	}
 }
 
+// Touching returns the 6 points touching to the point
+func (p Point3) Touching() []Point3 {
+	return []Point3{
+		{p[0] - 1, p[1], p[2]},
+		{p[0] + 1, p[1], p[2]},
+
+		{p[0], p[1] - 1, p[2]},
+		{p[0], p[1] + 1, p[2]},
+
+		{p[0], p[1], p[2] - 1},
+		{p[0], p[1], p[2] + 1},
+	}
+}
+
 // Scale returns a point with each coordinate multiplied by the specified factor.
 func (p Point3) Scale(f int) Point3 {
 	return Point3{p[0] * f, p[1] * f, p[2] * f}
