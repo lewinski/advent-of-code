@@ -51,187 +51,176 @@ func main() {
 func part1(blueprints []blueprint, minutes int) int {
 	totalQuality := 0
 	for _, blueprint := range blueprints {
-		best := map[int]int{}
-
-		states := []state{
-			{oreRobots: 1},
-		}
-
-		for len(states) > 0 {
-			state := states[len(states)-1]
-			states = states[0 : len(states)-1]
-
-			if state.geodes > best[state.minutes] {
-				best[state.minutes] = state.geodes
-			} else if estimateGeodes(state, minutes) < best[minutes] {
-				continue
-			}
-
-			if state.minutes == minutes {
-				continue
-			}
-
-			next := nextStates(blueprint, state)
-			for _, s := range next {
-				if estimateGeodes(s, minutes) < best[minutes] {
-					continue
-				}
-				states = append(states, s)
-			}
-		}
-		fmt.Printf("Blueprint %d: %d geodes\n", blueprint.id, best[minutes])
-		totalQuality += blueprint.id * best[minutes]
+		totalQuality += blueprint.id * maxGeodes(blueprint, minutes)
 	}
-
 	return totalQuality
 }
 
 func part2(blueprints []blueprint, minutes int) int {
 	answer := 1
 	for _, blueprint := range blueprints {
-		best := map[int]int{}
-
-		states := []state{
-			{oreRobots: 1},
-		}
-
-		for len(states) > 0 {
-			state := states[len(states)-1]
-			states = states[0 : len(states)-1]
-
-			if state.geodes > best[state.minutes] {
-				best[state.minutes] = state.geodes
-			} else if estimateGeodes(state, minutes) < best[minutes] {
-				continue
-			}
-
-			if state.minutes == minutes {
-				continue
-			}
-
-			next := nextStates(blueprint, state)
-			for _, s := range next {
-				if estimateGeodes(s, minutes) < best[minutes] {
-					continue
-				}
-				states = append(states, s)
-			}
-
-		}
-		fmt.Printf("Blueprint %d: %d geodes\n", blueprint.id, best[minutes])
-		answer *= best[minutes]
+		answer *= maxGeodes(blueprint, minutes)
 	}
-
 	return answer
 }
 
-func estimateGeodes(s state, minutes int) int {
-	remaining := minutes - s.minutes
+func maxGeodes(bp blueprint, minutes int) int {
+	best := 0
+
+	states := []state{
+		{oreRobots: 1, minutes: minutes},
+	}
+
+	for len(states) > 0 {
+		state := states[len(states)-1]
+		states = states[0 : len(states)-1]
+
+		if state.minutes == 0 {
+			if state.geodes > best {
+				best = state.geodes
+			}
+			continue
+		}
+
+		next := nextStates(bp, state)
+		for _, s := range next {
+			if estimateMaxGeodes(s) < best {
+				continue
+			}
+			states = append(states, s)
+		}
+	}
+	fmt.Printf("Blueprint %d: %d geodes\n", bp.id, best)
+	return best
+}
+
+func estimateMaxGeodes(s state) int {
 	return s.geodes +
-		(remaining * s.geodeRobots) +
-		(remaining*(remaining-1))/2
+		(s.minutes * s.geodeRobots) +
+		((s.minutes * (s.minutes - 1)) / 2)
 }
 
 func nextStates(bp blueprint, cur state) []state {
 	states := []state{}
 
-	var buildOre, buildClay, buildObsidian, buildGeode, doNothing *state
-
-	// can i build an ore robot?
+	// should i build an ore robot?
 	oreRobotNeeded := cur.oreRobots < bp.oreRobotOreCost ||
 		cur.oreRobots < bp.clayRobotOreCost ||
 		cur.oreRobots < bp.obsidianRobotOreCost ||
 		cur.oreRobots < bp.geodeRobotOreCost
-	if oreRobotNeeded && cur.ore >= bp.oreRobotOreCost {
-		buildOre = &state{
-			minutes:        cur.minutes + 1,
+	if oreRobotNeeded {
+		mins := 1
+		if cur.ore < bp.oreRobotOreCost {
+			mins += (bp.oreRobotOreCost - cur.ore + cur.oreRobots - 1) / cur.oreRobots
+		}
+
+		buildOre := state{
+			minutes:        cur.minutes - mins,
 			oreRobots:      cur.oreRobots + 1,
 			clayRobots:     cur.clayRobots,
 			obsidianRobots: cur.obsidianRobots,
 			geodeRobots:    cur.geodeRobots,
-			ore:            cur.ore + cur.oreRobots - bp.oreRobotOreCost,
-			clay:           cur.clay + cur.clayRobots,
-			obsidian:       cur.obsidian + cur.obsidianRobots,
-			geodes:         cur.geodes + cur.geodeRobots,
+			ore:            cur.ore + (mins * cur.oreRobots) - bp.oreRobotOreCost,
+			clay:           cur.clay + (mins * cur.clayRobots),
+			obsidian:       cur.obsidian + (mins * cur.obsidianRobots),
+			geodes:         cur.geodes + (mins * cur.geodeRobots),
+		}
+		if buildOre.minutes >= 0 {
+			states = append(states, buildOre)
 		}
 	}
 
-	// can i build a clay robot?
+	// should i build a clay robot?
 	clayRobotNeeded := cur.clayRobots < bp.obsidianRobotClayCost
-	if clayRobotNeeded && cur.ore >= bp.clayRobotOreCost {
-		buildClay = &state{
-			minutes:        cur.minutes + 1,
+	if clayRobotNeeded {
+		mins := 1
+		if cur.ore < bp.clayRobotOreCost {
+			mins += (bp.clayRobotOreCost - cur.ore + cur.oreRobots - 1) / cur.oreRobots
+		}
+
+		buildClay := state{
+			minutes:        cur.minutes - mins,
 			oreRobots:      cur.oreRobots,
 			clayRobots:     cur.clayRobots + 1,
 			obsidianRobots: cur.obsidianRobots,
 			geodeRobots:    cur.geodeRobots,
-			ore:            cur.ore + cur.oreRobots - bp.clayRobotOreCost,
-			clay:           cur.clay + cur.clayRobots,
-			obsidian:       cur.obsidian + cur.obsidianRobots,
-			geodes:         cur.geodes + cur.geodeRobots,
+			ore:            cur.ore + (mins * cur.oreRobots) - bp.clayRobotOreCost,
+			clay:           cur.clay + (mins * cur.clayRobots),
+			obsidian:       cur.obsidian + (mins * cur.obsidianRobots),
+			geodes:         cur.geodes + (mins * cur.geodeRobots),
+		}
+		if buildClay.minutes >= 0 {
+			states = append(states, buildClay)
 		}
 	}
 
 	// can i build an obsidian robot?
 	obsidianRobotNeeded := cur.obsidianRobots < bp.geodeRobotObsidianCost
-	if obsidianRobotNeeded && cur.ore >= bp.obsidianRobotOreCost && cur.clay >= bp.obsidianRobotClayCost {
-		buildObsidian = &state{
-			minutes:        cur.minutes + 1,
+	if obsidianRobotNeeded && cur.clayRobots > 0 {
+		mins := 1
+		if cur.ore < bp.obsidianRobotOreCost || cur.clay < bp.obsidianRobotClayCost {
+			mins += util.IMax(
+				(bp.obsidianRobotOreCost-cur.ore+cur.oreRobots-1)/cur.oreRobots,
+				(bp.obsidianRobotClayCost-cur.clay+cur.clayRobots-1)/cur.clayRobots,
+			)
+		}
+
+		buildObsidian := state{
+			minutes:        cur.minutes - mins,
 			oreRobots:      cur.oreRobots,
 			clayRobots:     cur.clayRobots,
 			obsidianRobots: cur.obsidianRobots + 1,
 			geodeRobots:    cur.geodeRobots,
-			ore:            cur.ore + cur.oreRobots - bp.obsidianRobotOreCost,
-			clay:           cur.clay + cur.clayRobots - bp.obsidianRobotClayCost,
-			obsidian:       cur.obsidian + cur.obsidianRobots,
-			geodes:         cur.geodes + cur.geodeRobots,
+			ore:            cur.ore + (mins * cur.oreRobots) - bp.obsidianRobotOreCost,
+			clay:           cur.clay + (mins * cur.clayRobots) - bp.obsidianRobotClayCost,
+			obsidian:       cur.obsidian + (mins * cur.obsidianRobots),
+			geodes:         cur.geodes + (mins * cur.geodeRobots),
+		}
+		if buildObsidian.minutes >= 0 {
+			states = append(states, buildObsidian)
 		}
 	}
 
 	// can i build a geode robot?
-	if cur.ore >= bp.geodeRobotOreCost && cur.obsidian >= bp.geodeRobotObsidianCost {
-		buildGeode = &state{
-			minutes:        cur.minutes + 1,
+	if cur.obsidianRobots > 0 {
+		mins := 1
+		if cur.ore < bp.geodeRobotOreCost || cur.obsidian < bp.geodeRobotObsidianCost {
+			mins += util.IMax(
+				(bp.geodeRobotOreCost-cur.ore+cur.oreRobots-1)/cur.oreRobots,
+				(bp.geodeRobotObsidianCost-cur.obsidian+cur.obsidianRobots-1)/cur.obsidianRobots,
+			)
+		}
+
+		buildGeode := state{
+			minutes:        cur.minutes - mins,
 			oreRobots:      cur.oreRobots,
 			clayRobots:     cur.clayRobots,
 			obsidianRobots: cur.obsidianRobots,
 			geodeRobots:    cur.geodeRobots + 1,
-			ore:            cur.ore + cur.oreRobots - bp.geodeRobotOreCost,
-			clay:           cur.clay + cur.clayRobots,
-			obsidian:       cur.obsidian + cur.obsidianRobots - bp.geodeRobotObsidianCost,
-			geodes:         cur.geodes + cur.geodeRobots,
+			ore:            cur.ore + (mins * cur.oreRobots) - bp.geodeRobotOreCost,
+			clay:           cur.clay + (mins * cur.clayRobots),
+			obsidian:       cur.obsidian + (mins * cur.obsidianRobots) - bp.geodeRobotObsidianCost,
+			geodes:         cur.geodes + (mins * cur.geodeRobots),
+		}
+		if buildGeode.minutes >= 0 {
+			states = append(states, buildGeode)
 		}
 	}
 
 	// do nothing
-	if oreRobotNeeded || clayRobotNeeded || obsidianRobotNeeded || buildGeode != nil {
-		doNothing = &state{
-			minutes:        cur.minutes + 1,
+	if cur.geodeRobots > 1 {
+		doNothing := state{
+			minutes:        0,
 			oreRobots:      cur.oreRobots,
 			clayRobots:     cur.clayRobots,
 			obsidianRobots: cur.obsidianRobots,
 			geodeRobots:    cur.geodeRobots,
-			ore:            cur.ore + cur.oreRobots,
-			clay:           cur.clay + cur.clayRobots,
-			obsidian:       cur.obsidian + cur.obsidianRobots,
-			geodes:         cur.geodes + cur.geodeRobots,
+			ore:            cur.ore + (cur.minutes * cur.oreRobots),
+			clay:           cur.clay + (cur.minutes * cur.clayRobots),
+			obsidian:       cur.obsidian + (cur.minutes * cur.obsidianRobots),
+			geodes:         cur.geodes + (cur.minutes * cur.geodeRobots),
 		}
-	}
-
-	if doNothing != nil {
-		states = append(states, *doNothing)
-	}
-	if buildOre != nil {
-		states = append(states, *buildOre)
-	}
-	if buildClay != nil {
-		states = append(states, *buildClay)
-	}
-	if buildObsidian != nil {
-		states = append(states, *buildObsidian)
-	}
-	if buildGeode != nil {
-		states = append(states, *buildGeode)
+		states = append(states, doNothing)
 	}
 
 	return states
