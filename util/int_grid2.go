@@ -1,5 +1,7 @@
 package util
 
+import "math"
+
 // Point2 is a two-dimensional point.
 type Point2 [2]int
 
@@ -82,6 +84,30 @@ func (g IntGrid2) Set(p Point2, val int) {
 // SetCoords sets the value in the grid at the coordinates.
 func (g IntGrid2) SetCoords(x, y, val int) {
 	g.Set(Point2{x, y}, val)
+}
+
+func (g IntGrid2) Bounds() (min, max Point2) {
+	min[0] = math.MaxInt64
+	min[1] = math.MaxInt64
+	max[0] = math.MinInt64
+	max[1] = math.MinInt64
+
+	for p := range g {
+		if p[0] < min[0] {
+			min[0] = p[0]
+		}
+		if p[1] < min[1] {
+			min[1] = p[1]
+		}
+		if p[0] > max[0] {
+			max[0] = p[0]
+		}
+		if p[1] > max[1] {
+			max[1] = p[1]
+		}
+	}
+
+	return
 }
 
 // IntGrid2EachFunc is the signature for the function passed to Each.
