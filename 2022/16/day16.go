@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/lewinski/advent-of-code/util"
@@ -34,6 +36,7 @@ func main() {
 	}
 
 	fmt.Println("part1:", part1(rooms))
+	fmt.Println("be patient... takes about 5 minutes...")
 	fmt.Println("part2:", part2(rooms))
 }
 
@@ -57,26 +60,16 @@ func (s state) dup() state {
 	}
 }
 
-func part1(rooms map[string]*room) int {
+func solve(states []state, rooms map[string]*room, cb func(state)) {
 	dist := distances(rooms)
-
-	states := []state{}
-	states = append(states, state{
-		pos:       "AA",
-		visited:   map[string]bool{"AA": true},
-		remaining: 30,
-		released:  0,
-	})
-	best := 0
 
 	for len(states) > 0 {
 		s := states[0]
 		states = states[1:]
 
-		if s.released > best {
-			best = s.released
-		}
+		cb(s)
 
+		newStates := 0
 		for other := range rooms {
 			if rooms[other].rate == 0 {
 				continue
@@ -95,14 +88,87 @@ func part1(rooms map[string]*room) int {
 			}
 			next.released += next.remaining * rooms[other].rate
 			states = append(states, next)
+			newStates++
 		}
 	}
+}
+
+func part1(rooms map[string]*room) int {
+	states := []state{}
+	states = append(states, state{
+		pos:       "AA",
+		visited:   map[string]bool{"AA": true},
+		remaining: 30,
+		released:  0,
+	})
+
+	best := 0
+
+	solve(states, rooms, func(s state) {
+		if s.released > best {
+			best = s.released
+		}
+	})
 
 	return best
 }
 
+func p2key(s state) string {
+	visited := []string{}
+	for k := range s.visited {
+		visited = append(visited, k)
+	}
+	sort.StringSlice(visited).Sort()
+	return fmt.Sprintf("%s", visited)
+}
+
 func part2(rooms map[string]*room) int {
-	return 0
+	dist := distances(rooms)
+
+	states := []state{}
+	states = append(states, state{
+		pos:       "AA",
+		visited:   map[string]bool{"AA": true},
+		remaining: 26,
+		released:  0,
+	})
+
+	// collect the best we can do for each position and visited set
+	best := map[string]state{}
+	solve(states, rooms, func(s state) {
+		key := p2key(s)
+
+		if best[key].released < s.released {
+			best[key] = s.dup()
+		}
+	})
+
+	// now restart the solve from each of the best states to simulate the other actor
+	best2 := 0
+	for _, s := range best {
+		// what is the best we could possibly do if we could simultaneously visit all the other rooms asap?
+		possible := s.released
+		for _, r := range rooms {
+			if r.rate > 0 && !s.visited[r.name] {
+				possible += r.rate * (26 - 1 - dist["AA"][r.name])
+			}
+		}
+		// if it is worse than what we already found, skip it
+		if possible < best2 {
+			continue
+		}
+
+		s.pos = "AA"
+		s.remaining = 26
+		states := []state{s}
+		solve(states, rooms, func(s state) {
+			if s.released > best2 {
+				best2 = s.released
+			}
+		})
+	}
+
+	return best2
 }
 
 func distances(rooms map[string]*room) map[string]map[string]int {
@@ -115,7 +181,7 @@ func distances(rooms map[string]*room) map[string]map[string]int {
 			} else if rooms[i].adjacent[j] == 1 {
 				dist[i][j] = 1
 			} else {
-				dist[i][j] = 100000
+				dist[i][j] = math.MaxInt32
 			}
 		}
 	}
